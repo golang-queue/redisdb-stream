@@ -1,2 +1,3 @@
 # redisdb-stream
-Redis Streams as backend for Queue Package
+
+[Redis Streams](https://redis.io/docs/manual/data-types/streams/) as backend for Queue Package
