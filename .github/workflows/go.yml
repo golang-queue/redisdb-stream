@@ -38,6 +38,15 @@ jobs:
           master1-port: 6379
           slave1-port: 6380
 
+      # Running Test
+      - name: Running Test
+        run: |
+          sudo apt-get install -y redis-tools
+          docker ps -a
+          redis-cli -h 127.0.0.1 -p 6379 ping
+          redis-cli -h 127.0.0.1 -p 6379 cluster nodes
+          redis-cli --cluster fix 127.0.0.1:6379
+
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v2
         with:
