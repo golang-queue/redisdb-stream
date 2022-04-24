@@ -25,6 +25,7 @@ type Worker struct {
 	stopOnce  sync.Once
 	startOnce sync.Once
 	stop      chan struct{}
+	exit      chan struct{}
 	opts      options
 }
 
@@ -34,6 +35,7 @@ func NewWorker(opts ...Option) *Worker {
 	w := &Worker{
 		opts:  newOptions(opts...),
 		stop:  make(chan struct{}),
+		exit:  make(chan struct{}),
 		tasks: make(chan redis.XMessage),
 	}
 
@@ -116,6 +118,10 @@ func (w *Worker) fetchTask() {
 				case <-w.stop:
 					// Todo: re-queue the task
 					w.opts.logger.Info("re-queue the task: ", message.ID)
+					if err := w.queue(message.Values); err != nil {
+						w.opts.logger.Error("error to re-queue the task: ", message.ID)
+					}
+					close(w.exit)
 					return
 				}
 			}
@@ -178,6 +184,13 @@ func (w *Worker) Shutdown() error {
 
 	w.stopOnce.Do(func() {
 		close(w.stop)
+
+		// wait requeue
+		select {
+		case <-w.exit:
+		case <-time.After(200 * time.Millisecond):
+		}
+
 		switch v := w.rdb.(type) {
 		case *redis.Client:
 			v.Close()
@@ -189,12 +202,7 @@ func (w *Worker) Shutdown() error {
 	return nil
 }
 
-// Queue send notification to queue
-func (w *Worker) Queue(task core.QueuedMessage) error {
-	if atomic.LoadInt32(&w.stopFlag) == 1 {
-		return queue.ErrQueueShutdown
-	}
-
+func (w *Worker) queue(data interface{}) error {
 	ctx := context.Background()
 
 	// Publish a message.
@@ -202,10 +210,19 @@ func (w *Worker) Queue(task core.QueuedMessage) error {
 		Stream:       w.opts.streamName,
 		MaxLen:       0,
 		MaxLenApprox: 0,
-		Values:       map[string]interface{}{"body": BytesToStr(task.Bytes())},
+		Values:       data,
 	}).Err()
 
 	return err
+}
+
+// Queue send notification to queue
+func (w *Worker) Queue(task core.QueuedMessage) error {
+	if atomic.LoadInt32(&w.stopFlag) == 1 {
+		return queue.ErrQueueShutdown
+	}
+
+	return w.queue(map[string]interface{}{"body": BytesToStr(task.Bytes())})
 }
 
 // Run start the worker
