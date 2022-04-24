@@ -34,6 +34,7 @@ func main() {
 	w := redisdb.NewWorker(
 		redisdb.WithAddr("127.0.0.1:6379"),
 		redisdb.WithStreamName("foobar"),
+		redisdb.WithGroup("foobar"),
 		redisdb.WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
 			var v *job
 			if err := json.Unmarshal(m.Bytes(), &v); err != nil {

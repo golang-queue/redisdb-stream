@@ -19,6 +19,9 @@ type options struct {
 	password         string
 	streamName       string
 	cluster          bool
+	group            string
+	consumer         string
+	disableConsumer  bool
 }
 
 // WithAddr setup the addr of redis
@@ -46,6 +49,27 @@ func WithCluster(enable bool) Option {
 func WithStreamName(name string) Option {
 	return func(w *options) {
 		w.streamName = name
+	}
+}
+
+// WithGroup group name
+func WithGroup(name string) Option {
+	return func(w *options) {
+		w.group = name
+	}
+}
+
+// WithConsumer consumer name
+func WithConsumer(name string) Option {
+	return func(w *options) {
+		w.consumer = name
+	}
+}
+
+// WithDisableConsumer disable consumer
+func WithDisableConsumer() Option {
+	return func(w *options) {
+		w.disableConsumer = true
 	}
 }
 
@@ -80,7 +104,9 @@ func WithLogger(l queue.Logger) Option {
 func newOptions(opts ...Option) options {
 	defaultOpts := options{
 		addr:       "127.0.0.1:6379",
-		streamName: "queue",
+		streamName: "golang-queue",
+		group:      "golang-queue",
+		consumer:   "golang-queue",
 		logger:     queue.NewLogger(),
 		runFunc: func(context.Context, core.QueuedMessage) error {
 			return nil

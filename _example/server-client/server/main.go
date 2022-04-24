@@ -29,6 +29,7 @@ func main() {
 	w := redisdb.NewWorker(
 		redisdb.WithAddr("127.0.0.1:6379"),
 		redisdb.WithStreamName("foobar"),
+		redisdb.WithDisableConsumer(),
 	)
 
 	// define the queue
@@ -48,7 +49,7 @@ func main() {
 		}(i)
 	}
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	// shutdown the service and notify all the worker
 	q.Release()
 }

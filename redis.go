@@ -64,7 +64,20 @@ func NewWorker(opts ...Option) *Worker {
 		w.opts.logger.Fatal(err)
 	}
 
-	go w.fetchTask()
+	if !w.opts.disableConsumer {
+		err = w.rdb.XGroupCreateMkStream(
+			context.Background(),
+			w.opts.streamName,
+			w.opts.group,
+			"$",
+		).Err()
+
+		if err != nil {
+			w.opts.logger.Fatal(err)
+		}
+
+		go w.fetchTask()
+	}
 
 	return w
 }
@@ -78,8 +91,10 @@ func (w *Worker) fetchTask() {
 		}
 
 		ctx := context.Background()
-		data, err := w.rdb.XRead(ctx, &redis.XReadArgs{
-			Streams: []string{w.opts.streamName, "0"},
+		data, err := w.rdb.XReadGroup(ctx, &redis.XReadGroupArgs{
+			Group:    w.opts.group,
+			Consumer: w.opts.consumer,
+			Streams:  []string{w.opts.streamName, ">"},
 			// count is number of entries we want to read from redis
 			Count: 1,
 			// we use the block command to make sure if no entry is found we wait
@@ -95,12 +110,12 @@ func (w *Worker) fetchTask() {
 			for _, message := range result.Messages {
 				select {
 				case w.tasks <- message:
-					// delete message
-					result := w.rdb.XDel(ctx, w.opts.streamName, message.ID)
-					if result.Val() != 1 {
-						w.opts.logger.Errorf("can't delete message: %s", message.ID)
+					if err := w.rdb.XAck(ctx, w.opts.streamName, w.opts.group, message.ID).Err(); err != nil {
+						w.opts.logger.Errorf("can't ack message: %s", message.ID)
 					}
 				case <-w.stop:
+					// Todo: re-queue the task
+					w.opts.logger.Info("re-queue the task: ", message.ID)
 					return
 				}
 			}
