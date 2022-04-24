@@ -96,6 +96,7 @@ func TestCustomFuncAndWait(t *testing.T) {
 }
 
 func TestRedisCluster(t *testing.T) {
+	t.Skip()
 	m := &mockMessage{
 		Message: "foo",
 	}
