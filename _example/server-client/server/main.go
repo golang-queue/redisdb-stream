@@ -29,7 +29,6 @@ func main() {
 	w := redisdb.NewWorker(
 		redisdb.WithAddr("127.0.0.1:6379"),
 		redisdb.WithStreamName("foobar"),
-		redisdb.WithDisableConsumer(),
 	)
 
 	// define the queue
