@@ -21,7 +21,6 @@ type options struct {
 	cluster          bool
 	group            string
 	consumer         string
-	disableConsumer  bool
 }
 
 // WithAddr setup the addr of redis
@@ -63,13 +62,6 @@ func WithGroup(name string) Option {
 func WithConsumer(name string) Option {
 	return func(w *options) {
 		w.consumer = name
-	}
-}
-
-// WithDisableConsumer disable consumer
-func WithDisableConsumer() Option {
-	return func(w *options) {
-		w.disableConsumer = true
 	}
 }
 

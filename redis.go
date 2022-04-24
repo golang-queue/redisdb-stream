@@ -7,7 +7,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"unsafe"
 
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
@@ -20,12 +19,13 @@ var _ core.Worker = (*Worker)(nil)
 // Worker for Redis
 type Worker struct {
 	// redis config
-	rdb      redis.Cmdable
-	tasks    chan redis.XMessage
-	stopFlag int32
-	stopOnce sync.Once
-	stop     chan struct{}
-	opts     options
+	rdb       redis.Cmdable
+	tasks     chan redis.XMessage
+	stopFlag  int32
+	stopOnce  sync.Once
+	startOnce sync.Once
+	stop      chan struct{}
+	opts      options
 }
 
 // NewWorker for struc
@@ -64,22 +64,22 @@ func NewWorker(opts ...Option) *Worker {
 		w.opts.logger.Fatal(err)
 	}
 
-	if !w.opts.disableConsumer {
-		err = w.rdb.XGroupCreateMkStream(
+	return w
+}
+
+func (w *Worker) startConsumer() {
+	w.startOnce.Do(func() {
+		if err := w.rdb.XGroupCreateMkStream(
 			context.Background(),
 			w.opts.streamName,
 			w.opts.group,
 			"$",
-		).Err()
-
-		if err != nil {
-			w.opts.logger.Fatal(err)
+		).Err(); err != nil {
+			w.opts.logger.Error(err)
 		}
 
 		go w.fetchTask()
-	}
-
-	return w
+	})
 }
 
 func (w *Worker) fetchTask() {
@@ -222,6 +222,7 @@ func (w *Worker) Run(task core.QueuedMessage) error {
 // Request a new task
 func (w *Worker) Request() (core.QueuedMessage, error) {
 	clock := 0
+	w.startConsumer()
 loop:
 	for {
 		select {
@@ -241,23 +242,4 @@ loop:
 	}
 
 	return nil, queue.ErrNoTaskInQueue
-}
-
-// BytesToStr converts byte slice to a string without memory allocation.
-// See https://groups.google.com/forum/#!msg/Golang-Nuts/ENgbUzYvCuU/90yGx7GUAgAJ .
-//
-// Note it may break if string and/or slice header will change
-// in the future go versions.
-func BytesToStr(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-// StrToBytes converts string to byte slice without a memory allocation.
-func StrToBytes(s string) (b []byte) {
-	return *(*[]byte)(unsafe.Pointer(
-		&struct {
-			string
-			Cap int
-		}{s, len(s)},
-	))
 }
