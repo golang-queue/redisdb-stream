@@ -89,8 +89,8 @@ func (w *Worker) fetchTask() {
 		if err != nil {
 			return
 		}
-		///we have received the data we should loop it and queue the messages
-		//so that our jobs can start processing
+		// we have received the data we should loop it and queue the messages
+		// so that our tasks can start processing
 		for _, result := range data {
 			for _, message := range result.Messages {
 				select {
