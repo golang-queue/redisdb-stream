@@ -33,14 +33,10 @@ jobs:
       GOPROXY: https://proxy.golang.org
 
     steps:
-      - uses: vishnudxb/redis-cluster@1.0.5
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.4.0
         with:
-          master1-port: 6379
-          master2-port: 6380
-          master3-port: 6381
-          slave1-port: 6382
-          slave2-port: 6383
-          slave3-port: 6384
+          redis-version: 6
 
       # Running Test
       - name: Running Test
@@ -49,7 +45,6 @@ jobs:
           docker ps -a
           redis-cli -h 127.0.0.1 -p 6379 ping
           redis-cli -h 127.0.0.1 -p 6379 cluster nodes
-          redis-cli --cluster fix 127.0.0.1:6379
 
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v2
