@@ -96,7 +96,10 @@ func (w *Worker) fetchTask() {
 				select {
 				case w.tasks <- message:
 					// delete message
-					w.rdb.XDel(ctx, w.opts.streamName, message.ID)
+					result := w.rdb.XDel(ctx, w.opts.streamName, message.ID)
+					if result.Val() != 1 {
+						w.opts.logger.Errorf("can't delete message: %s", message.ID)
+					}
 				case <-w.stop:
 					return
 				}
