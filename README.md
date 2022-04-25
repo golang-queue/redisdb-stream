@@ -5,3 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/golang-queue/redisdb-stream)](https://goreportcard.com/report/github.com/golang-queue/redisdb-stream)
 
 [Redis Streams](https://redis.io/docs/manual/data-types/streams/) as backend for Queue Package
+
+## System Flow
+
+![flow](./images/redis-stream.png)
