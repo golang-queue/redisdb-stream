@@ -295,7 +295,7 @@ func TestGoroutinePanic(t *testing.T) {
 }
 
 func TestHandleTimeout(t *testing.T) {
-	job := queue.Job{
+	job := &queue.Job{
 		Timeout: 100 * time.Millisecond,
 		Payload: []byte("foo"),
 	}
@@ -311,7 +311,7 @@ func TestHandleTimeout(t *testing.T) {
 	assert.Equal(t, context.DeadlineExceeded, err)
 	assert.NoError(t, w.Shutdown())
 
-	job = queue.Job{
+	job = &queue.Job{
 		Timeout: 150 * time.Millisecond,
 		Payload: []byte("foo"),
 	}
@@ -336,7 +336,7 @@ func TestHandleTimeout(t *testing.T) {
 }
 
 func TestJobComplete(t *testing.T) {
-	job := queue.Job{
+	job := &queue.Job{
 		Timeout: 100 * time.Millisecond,
 		Payload: []byte("foo"),
 	}
@@ -351,7 +351,7 @@ func TestJobComplete(t *testing.T) {
 	assert.Equal(t, errors.New("job completed"), err)
 	assert.NoError(t, w.Shutdown())
 
-	job = queue.Job{
+	job = &queue.Job{
 		Timeout: 250 * time.Millisecond,
 		Payload: []byte("foo"),
 	}
