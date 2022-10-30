@@ -21,6 +21,7 @@ type options struct {
 	cluster          bool
 	group            string
 	consumer         string
+	maxLength		 int64	
 }
 
 // WithAddr setup the addr of redis
@@ -92,6 +93,12 @@ func WithLogger(l queue.Logger) Option {
 		w.logger = l
 	}
 }
+
+func WithMaxLength(m int64) Option {
+	return func(w *options) {
+		w.maxLength = m
+	}
+} 
 
 func newOptions(opts ...Option) options {
 	defaultOpts := options{
