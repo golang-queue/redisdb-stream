@@ -21,12 +21,20 @@ type options struct {
 	cluster          bool
 	group            string
 	consumer         string
+	maxLength        int64
 }
 
 // WithAddr setup the addr of redis
 func WithAddr(addr string) Option {
 	return func(w *options) {
 		w.addr = addr
+	}
+}
+
+// WithMaxLength setup the max length for publish messages
+func WithMaxLength(m int64) Option {
+	return func(w *options) {
+		w.maxLength = m
 	}
 }
 
