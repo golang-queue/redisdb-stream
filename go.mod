@@ -3,7 +3,7 @@ module github.com/golang-queue/redisdb-stream
 go 1.18
 
 require (
-	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/golang-queue/queue v0.1.3
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/goleak v1.2.0

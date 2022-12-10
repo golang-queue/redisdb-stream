@@ -11,7 +11,7 @@ import (
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v9"
 )
 
 var _ core.Worker = (*Worker)(nil)
@@ -207,10 +207,9 @@ func (w *Worker) queue(data interface{}) error {
 
 	// Publish a message.
 	err := w.rdb.XAdd(ctx, &redis.XAddArgs{
-		Stream:       w.opts.streamName,
-		MaxLen:       0,
-		MaxLenApprox: 0,
-		Values:       data,
+		Stream: w.opts.streamName,
+		MaxLen: 0,
+		Values: data,
 	}).Err()
 
 	return err
