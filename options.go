@@ -2,6 +2,7 @@ package redisdb
 
 import (
 	"context"
+	"time"
 
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
@@ -22,6 +23,7 @@ type options struct {
 	group            string
 	consumer         string
 	maxLength        int64
+	blockTime        time.Duration
 }
 
 // WithAddr setup the addr of redis
@@ -35,6 +37,15 @@ func WithAddr(addr string) Option {
 func WithMaxLength(m int64) Option {
 	return func(w *options) {
 		w.maxLength = m
+	}
+}
+
+// WithBlockTime setup the block time for publish messages
+// we use the block command to make sure if no entry is found we wait
+// until an entry is found
+func WithBlockTime(m time.Duration) Option {
+	return func(w *options) {
+		w.blockTime = m
 	}
 }
 
@@ -111,6 +122,7 @@ func newOptions(opts ...Option) options {
 		runFunc: func(context.Context, core.QueuedMessage) error {
 			return nil
 		},
+		blockTime: 60 * time.Second,
 	}
 
 	// Loop through each option

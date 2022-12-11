@@ -16,8 +16,6 @@ import (
 
 var _ core.Worker = (*Worker)(nil)
 
-const blockTime = 60000
-
 // Worker for Redis
 type Worker struct {
 	// redis config
@@ -103,10 +101,10 @@ func (w *Worker) fetchTask() {
 			Count: 1,
 			// we use the block command to make sure if no entry is found we wait
 			// until an entry is found
-			Block: blockTime,
+			Block: w.opts.blockTime,
 		}).Result()
 		if err != nil {
-			w.opts.logger.Errorf("error while reading from redis %v",err)
+			w.opts.logger.Errorf("error while reading from redis %v", err)
 			continue
 		}
 		// we have received the data we should loop it and queue the messages
