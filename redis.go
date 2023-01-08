@@ -10,6 +10,7 @@ import (
 
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
+	"github.com/golang-queue/queue/job"
 
 	"github.com/go-redis/redis/v9"
 )
@@ -130,53 +131,6 @@ func (w *Worker) fetchTask() {
 	}
 }
 
-func (w *Worker) handle(job *queue.Job) error {
-	// create channel with buffer size 1 to avoid goroutine leak
-	done := make(chan error, 1)
-	panicChan := make(chan interface{}, 1)
-	startTime := time.Now()
-	ctx, cancel := context.WithTimeout(context.Background(), job.Timeout)
-	defer func() {
-		cancel()
-	}()
-
-	// run the job
-	go func() {
-		// handle panic issue
-		defer func() {
-			if p := recover(); p != nil {
-				panicChan <- p
-			}
-		}()
-
-		// run custom process function
-		done <- w.opts.runFunc(ctx, job)
-	}()
-
-	select {
-	case p := <-panicChan:
-		panic(p)
-	case <-ctx.Done(): // timeout reached
-		return ctx.Err()
-	case <-w.stop: // shutdown service
-		// cancel job
-		cancel()
-
-		leftTime := job.Timeout - time.Since(startTime)
-		// wait job
-		select {
-		case <-time.After(leftTime):
-			return context.DeadlineExceeded
-		case err := <-done: // job finish
-			return err
-		case p := <-panicChan:
-			panic(p)
-		}
-	case err := <-done: // job finish
-		return err
-	}
-}
-
 // Shutdown worker
 func (w *Worker) Shutdown() error {
 	if !atomic.CompareAndSwapInt32(&w.stopFlag, 0, 1) {
@@ -226,14 +180,8 @@ func (w *Worker) Queue(task core.QueuedMessage) error {
 }
 
 // Run start the worker
-func (w *Worker) Run(task core.QueuedMessage) error {
-	data, _ := task.(*queue.Job)
-
-	if err := w.handle(data); err != nil {
-		return err
-	}
-
-	return nil
+func (w *Worker) Run(ctx context.Context, task core.QueuedMessage) error {
+	return w.opts.runFunc(ctx, task)
 }
 
 // Request a new task
@@ -247,7 +195,7 @@ loop:
 			if !ok {
 				return nil, queue.ErrQueueHasBeenClosed
 			}
-			var data queue.Job
+			var data job.Message
 			_ = json.Unmarshal(StrToBytes(task.Values["body"].(string)), &data)
 			return &data, nil
 		case <-time.After(1 * time.Second):
