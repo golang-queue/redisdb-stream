@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/golang-queue/queue v0.1.4-0.20221230133718-0314ef173f98
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	go.uber.org/goleak v1.2.0
 )
 
