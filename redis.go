@@ -12,7 +12,7 @@ import (
 	"github.com/golang-queue/queue/core"
 	"github.com/golang-queue/queue/job"
 
-	"github.com/go-redis/redis/v9"
+	"github.com/redis/go-redis/v9"
 )
 
 var _ core.Worker = (*Worker)(nil)
