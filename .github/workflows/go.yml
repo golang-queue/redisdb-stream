@@ -10,9 +10,9 @@ jobs:
         with:
           go-version: "^1"
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
         with:
           version: latest
           args: --verbose
@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        go: [1.18, 1.19, "1.20", 1.21]
+        go: [1.18, 1.19, "1.20", 1.21, 1.22, 1.23]
         include:
           - os: ubuntu-latest
             go-build: ~/.cache/go-build
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Start Redis
-        uses: supercharge/redis-github-action@1.4.0
+        uses: supercharge/redis-github-action@1.5.0
         with:
           redis-version: 6
 
@@ -52,11 +52,11 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ${{ matrix.go-build }}
@@ -69,6 +69,6 @@ jobs:
           go test -v -covermode=atomic -coverprofile=coverage.out
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           flags: ${{ matrix.os }},go-${{ matrix.go }}
