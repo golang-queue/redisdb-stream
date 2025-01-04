@@ -1,8 +1,11 @@
 module github.com/golang-queue/redisdb-stream
 
-go 1.18
+go 1.21
+
+toolchain go1.23.1
 
 require (
+	github.com/appleboy/com v0.2.1
 	github.com/golang-queue/queue v0.1.4-0.20221230133718-0314ef173f98
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/stretchr/testify v1.10.0

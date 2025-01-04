@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/appleboy/com/bytesconv"
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
 	"github.com/golang-queue/queue/job"
@@ -176,7 +177,7 @@ func (w *Worker) Queue(task core.QueuedMessage) error {
 		return queue.ErrQueueShutdown
 	}
 
-	return w.queue(map[string]interface{}{"body": BytesToStr(task.Bytes())})
+	return w.queue(map[string]interface{}{"body": bytesconv.BytesToStr(task.Bytes())})
 }
 
 // Run start the worker
@@ -196,7 +197,7 @@ loop:
 				return nil, queue.ErrQueueHasBeenClosed
 			}
 			var data job.Message
-			_ = json.Unmarshal(StrToBytes(task.Values["body"].(string)), &data)
+			_ = json.Unmarshal(bytesconv.StrToBytes(task.Values["body"].(string)), &data)
 			return &data, nil
 		case <-time.After(1 * time.Second):
 			if clock == 5 {
