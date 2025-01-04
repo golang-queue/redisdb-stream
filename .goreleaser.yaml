@@ -18,7 +18,7 @@ changelog:
   # - `github-native`: uses the GitHub release notes generation API, disables the groups feature.
   #
   # Defaults to `git`.
-  use: git
+  use: github
 
   # Sorts the changelog by the commit's messages.
   # Could either be asc, desc or empty
