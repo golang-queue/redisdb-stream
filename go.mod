@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/golang-queue/queue v0.1.4-0.20221230133718-0314ef173f98
-	github.com/redis/go-redis/v9 v9.0.2
-	github.com/stretchr/testify v1.8.2
-	go.uber.org/goleak v1.2.1
+	github.com/redis/go-redis/v9 v9.7.0
+	github.com/stretchr/testify v1.10.0
+	go.uber.org/goleak v1.3.0
 )
 
 require (
