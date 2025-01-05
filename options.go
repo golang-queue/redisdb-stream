@@ -17,6 +17,7 @@ type options struct {
 	addr             string
 	db               int
 	connectionString string
+	username         string
 	password         string
 	streamName       string
 	cluster          bool
@@ -81,6 +82,14 @@ func WithGroup(name string) Option {
 func WithConsumer(name string) Option {
 	return func(w *options) {
 		w.consumer = name
+	}
+}
+
+// WithUsername redis username
+// This is only used for redis cluster
+func WithUsername(username string) Option {
+	return func(w *options) {
+		w.username = username
 	}
 }
 
