@@ -50,16 +50,18 @@ func NewWorker(opts ...Option) *Worker {
 	} else if w.opts.addr != "" {
 		if w.opts.cluster {
 			w.rdb = redis.NewClusterClient(&redis.ClusterOptions{
-				Addrs:    strings.Split(w.opts.addr, ","),
-				Username: w.opts.username,
-				Password: w.opts.password,
+				Addrs:     strings.Split(w.opts.addr, ","),
+				Username:  w.opts.username,
+				Password:  w.opts.password,
+				TLSConfig: w.opts.tls,
 			})
 		} else {
 			options := &redis.Options{
-				Addr:     w.opts.addr,
-				Username: w.opts.username,
-				Password: w.opts.password,
-				DB:       w.opts.db,
+				Addr:      w.opts.addr,
+				Username:  w.opts.username,
+				Password:  w.opts.password,
+				DB:        w.opts.db,
+				TLSConfig: w.opts.tls,
 			}
 			w.rdb = redis.NewClient(options)
 		}

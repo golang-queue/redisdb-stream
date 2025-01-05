@@ -2,6 +2,7 @@ package redisdb
 
 import (
 	"context"
+	"crypto/tls"
 	"time"
 
 	"github.com/golang-queue/queue"
@@ -25,6 +26,7 @@ type options struct {
 	consumer         string
 	maxLength        int64
 	blockTime        time.Duration
+	tls              *tls.Config
 }
 
 // WithAddr setup the addr of redis
@@ -118,6 +120,34 @@ func WithRunFunc(fn func(context.Context, core.QueuedMessage) error) Option {
 func WithLogger(l queue.Logger) Option {
 	return func(w *options) {
 		w.logger = l
+	}
+}
+
+// WithTLS returns an Option that configures the use of TLS for the connection.
+// It sets the minimum TLS version to TLS 1.2.
+func WithTLS() Option {
+	return func(w *options) {
+		w.tls = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+}
+
+// WithSkipTLSVerify returns an Option that configures the TLS settings to skip
+// verification of the server's certificate. This is useful for connecting to
+// servers with self-signed certificates or when certificate verification is
+// not required. Use this option with caution as it makes the connection
+// susceptible to man-in-the-middle attacks.
+func WithSkipTLSVerify() Option {
+	return func(w *options) {
+		if w.tls == nil {
+			w.tls = &tls.Config{
+				InsecureSkipVerify: true, //nolint: gosec
+
+			}
+			return
+		}
+		w.tls.InsecureSkipVerify = true
 	}
 }
 
