@@ -188,7 +188,7 @@ func TestRedisCluster(t *testing.T) {
 	w := NewWorker(
 		WithAddr(strings.Join(hosts, ",")),
 		WithStreamName("testCluster"),
-		WithCluster(true),
+		WithCluster(),
 		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
 			time.Sleep(500 * time.Millisecond)
 			return nil

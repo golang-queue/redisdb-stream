@@ -60,9 +60,9 @@ func WithDB(db int) Option {
 }
 
 // WithCluster redis cluster
-func WithCluster(enable bool) Option {
+func WithCluster() Option {
 	return func(w *options) {
-		w.cluster = enable
+		w.cluster = true
 	}
 }
 
