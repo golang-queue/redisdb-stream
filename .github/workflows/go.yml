@@ -22,30 +22,14 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        go: [1.21, 1.22, 1.23]
+        go: [1.22, 1.23]
         include:
           - os: ubuntu-latest
             go-build: ~/.cache/go-build
     name: ${{ matrix.os }} @ Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
-    env:
-      GO111MODULE: on
-      GOPROXY: https://proxy.golang.org
 
     steps:
-      - name: Start Redis
-        uses: supercharge/redis-github-action@1.8.0
-        with:
-          redis-version: 6
-
-      # Running Test
-      - name: Running Test
-        run: |
-          sudo apt-get install -y redis-tools
-          docker ps -a
-          redis-cli -h 127.0.0.1 -p 6379 ping
-          redis-cli -h 127.0.0.1 -p 6379 cluster nodes
-
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v5
         with:

@@ -15,13 +15,67 @@ import (
 	"github.com/golang-queue/queue/job"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"go.uber.org/goleak"
 )
 
-var host = "127.0.0.1"
-
 func TestMain(m *testing.M) {
 	goleak.VerifyTestMain(m)
+}
+
+func setupRedisCluserContainer(ctx context.Context, t *testing.T) (testcontainers.Container, string) {
+	req := testcontainers.ContainerRequest{
+		Image: "vishnunair/docker-redis-cluster:latest",
+		ExposedPorts: []string{
+			"6379/tcp",
+			"6380/tcp",
+			"6381/tcp",
+			"6382/tcp",
+			"6383/tcp",
+			"6384/tcp",
+		},
+		WaitingFor: wait.NewExecStrategy(
+			[]string{"redis-cli", "-h", "localhost", "-p", "6379", "cluster", "info"},
+		),
+	}
+	redisC, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	require.NoError(t, err)
+
+	endpoint, err := redisC.Endpoint(ctx, "")
+	require.NoError(t, err)
+
+	return redisC, endpoint
+}
+
+func setupRedisContainer(ctx context.Context, t *testing.T) (testcontainers.Container, string) {
+	req := testcontainers.ContainerRequest{
+		Image:        "redis:6",
+		ExposedPorts: []string{"6379/tcp"},
+		WaitingFor: wait.NewExecStrategy(
+			[]string{"redis-cli", "-h", "localhost", "-p", "6379", "ping"},
+		),
+	}
+	redisC, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	require.NoError(t, err)
+
+	endpoint, err := redisC.Endpoint(ctx, "")
+	require.NoError(t, err)
+
+	return redisC, endpoint
+}
+
+func TestWithRedis(t *testing.T) {
+	ctx := context.Background()
+	redisC, _ := setupRedisContainer(ctx, t)
+	testcontainers.CleanupContainer(t, redisC)
 }
 
 type mockMessage struct {
@@ -33,11 +87,15 @@ func (m mockMessage) Bytes() []byte {
 }
 
 func TestRedisDefaultFlow(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
+
 	m := &mockMessage{
 		Message: "foo",
 	}
 	w := NewWorker(
-		WithAddr(host+":6379"),
+		WithAddr(endpoint),
 		WithStreamName("test"),
 	)
 	q, err := queue.NewQueue(
@@ -52,8 +110,11 @@ func TestRedisDefaultFlow(t *testing.T) {
 }
 
 func TestRedisShutdown(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
 	w := NewWorker(
-		WithAddr(host+":6379"),
+		WithAddr(endpoint),
 		WithStreamName("test2"),
 	)
 	q, err := queue.NewQueue(
@@ -71,11 +132,14 @@ func TestRedisShutdown(t *testing.T) {
 }
 
 func TestCustomFuncAndWait(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
 	m := &mockMessage{
 		Message: "foo",
 	}
 	w := NewWorker(
-		WithAddr(host+":6379"),
+		WithAddr(endpoint),
 		WithStreamName("test3"),
 		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
 			time.Sleep(500 * time.Millisecond)
@@ -97,12 +161,29 @@ func TestCustomFuncAndWait(t *testing.T) {
 }
 
 func TestRedisCluster(t *testing.T) {
-	t.Skip()
+	t.Helper()
+
+	ctx := context.Background()
+	redisC, _ := setupRedisCluserContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
+
+	masterPort, err := redisC.MappedPort(ctx, "6379")
+	assert.NoError(t, err)
+
+	slavePort, err := redisC.MappedPort(ctx, "6382")
+	assert.NoError(t, err)
+
+	hostIP, err := redisC.Host(ctx)
+	assert.NoError(t, err)
+
 	m := &mockMessage{
 		Message: "foo",
 	}
 
-	hosts := []string{host + ":6379", host + ":6380"}
+	masterName := fmt.Sprintf("%s:%s", hostIP, masterPort.Port())
+	slaveName := fmt.Sprintf("%s:%s", hostIP, slavePort.Port())
+
+	hosts := []string{masterName, slaveName}
 
 	w := NewWorker(
 		WithAddr(strings.Join(hosts, ",")),
@@ -128,11 +209,14 @@ func TestRedisCluster(t *testing.T) {
 }
 
 func TestEnqueueJobAfterShutdown(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
 		Message: "foo",
 	}
 	w := NewWorker(
-		WithAddr(host + ":6379"),
+		WithAddr(endpoint),
 	)
 	q, err := queue.NewQueue(
 		queue.WithWorker(w),
@@ -150,11 +234,14 @@ func TestEnqueueJobAfterShutdown(t *testing.T) {
 }
 
 func TestJobReachTimeout(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
 		Message: "foo",
 	}
 	w := NewWorker(
-		WithAddr(host+":6379"),
+		WithAddr(endpoint),
 		WithStreamName("timeout"),
 		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
 			for {
@@ -187,11 +274,14 @@ func TestJobReachTimeout(t *testing.T) {
 }
 
 func TestCancelJobAfterShutdown(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
 		Message: "test",
 	}
 	w := NewWorker(
-		WithAddr(host+":6379"),
+		WithAddr(endpoint),
 		WithStreamName("cancel"),
 		WithLogger(queue.NewLogger()),
 		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
@@ -225,11 +315,14 @@ func TestCancelJobAfterShutdown(t *testing.T) {
 }
 
 func TestGoroutineLeak(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
 		Message: "foo",
 	}
 	w := NewWorker(
-		WithAddr(host+":6379"),
+		WithAddr(endpoint),
 		WithStreamName("GoroutineLeak"),
 		WithLogger(queue.NewEmptyLogger()),
 		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
@@ -270,11 +363,14 @@ func TestGoroutineLeak(t *testing.T) {
 }
 
 func TestGoroutinePanic(t *testing.T) {
+	ctx := context.Background()
+	redisC, endpoint := setupRedisContainer(ctx, t)
+	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
 		Message: "foo",
 	}
 	w := NewWorker(
-		WithAddr(host+":6379"),
+		WithAddr(endpoint),
 		WithStreamName("GoroutinePanic"),
 		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
 			panic("missing something")
