@@ -8,11 +8,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/appleboy/com/bytesconv"
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
 	"github.com/golang-queue/queue/job"
 
+	"github.com/appleboy/com/bytesconv"
 	"github.com/redis/go-redis/v9"
 )
 
