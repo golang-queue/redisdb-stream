@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"time"
 
-	"github.com/golang-queue/contrib/zerolog"
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
 )
@@ -157,7 +156,7 @@ func newOptions(opts ...Option) options {
 		streamName: "golang-queue",
 		group:      "golang-queue",
 		consumer:   "golang-queue",
-		logger:     zerolog.New(),
+		logger:     queue.NewLogger(),
 		runFunc: func(context.Context, core.QueuedMessage) error {
 			return nil
 		},
