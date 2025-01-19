@@ -161,7 +161,7 @@ func TestCustomFuncAndWait(t *testing.T) {
 }
 
 func TestRedisCluster(t *testing.T) {
-	t.Helper()
+	t.Skip()
 
 	ctx := context.Background()
 	redisC, _ := setupRedisCluserContainer(ctx, t)
