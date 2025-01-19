@@ -153,7 +153,6 @@ func WithSkipTLSVerify() Option {
 
 func newOptions(opts ...Option) options {
 	defaultOpts := options{
-		addr:       "127.0.0.1:6379",
 		streamName: "golang-queue",
 		group:      "golang-queue",
 		consumer:   "golang-queue",
