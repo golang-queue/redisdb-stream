@@ -13,7 +13,7 @@ import (
 type Option func(*options)
 
 type options struct {
-	runFunc          func(context.Context, core.QueuedMessage) error
+	runFunc          func(context.Context, core.TaskMessage) error
 	logger           queue.Logger
 	addr             string
 	db               int
@@ -110,7 +110,7 @@ func WithConnectionString(connectionString string) Option {
 }
 
 // WithRunFunc setup the run func of queue
-func WithRunFunc(fn func(context.Context, core.QueuedMessage) error) Option {
+func WithRunFunc(fn func(context.Context, core.TaskMessage) error) Option {
 	return func(w *options) {
 		w.runFunc = fn
 	}
@@ -157,7 +157,7 @@ func newOptions(opts ...Option) options {
 		group:      "golang-queue",
 		consumer:   "golang-queue",
 		logger:     queue.NewLogger(),
-		runFunc: func(context.Context, core.QueuedMessage) error {
+		runFunc: func(context.Context, core.TaskMessage) error {
 			return nil
 		},
 		blockTime: 60 * time.Second,

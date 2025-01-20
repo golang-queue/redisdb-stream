@@ -141,7 +141,7 @@ func TestCustomFuncAndWait(t *testing.T) {
 	w := NewWorker(
 		WithAddr(endpoint),
 		WithStreamName("test3"),
-		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
+		WithRunFunc(func(ctx context.Context, m core.TaskMessage) error {
 			time.Sleep(500 * time.Millisecond)
 			return nil
 		}),
@@ -189,7 +189,7 @@ func TestRedisCluster(t *testing.T) {
 		WithAddr(strings.Join(hosts, ",")),
 		WithStreamName("testCluster"),
 		WithCluster(),
-		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
+		WithRunFunc(func(ctx context.Context, m core.TaskMessage) error {
 			time.Sleep(500 * time.Millisecond)
 			return nil
 		}),
@@ -243,7 +243,7 @@ func TestJobReachTimeout(t *testing.T) {
 	w := NewWorker(
 		WithAddr(endpoint),
 		WithStreamName("timeout"),
-		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
+		WithRunFunc(func(ctx context.Context, m core.TaskMessage) error {
 			for {
 				select {
 				case <-ctx.Done():
@@ -286,7 +286,7 @@ func TestCancelJobAfterShutdown(t *testing.T) {
 		WithAddr(endpoint),
 		WithStreamName("cancel"),
 		WithLogger(queue.NewLogger()),
-		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
+		WithRunFunc(func(ctx context.Context, m core.TaskMessage) error {
 			for {
 				select {
 				case <-ctx.Done():
@@ -329,7 +329,7 @@ func TestGoroutineLeak(t *testing.T) {
 		WithAddr(endpoint),
 		WithStreamName("GoroutineLeak"),
 		WithLogger(queue.NewEmptyLogger()),
-		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
+		WithRunFunc(func(ctx context.Context, m core.TaskMessage) error {
 			for {
 				select {
 				case <-ctx.Done():
@@ -376,7 +376,7 @@ func TestGoroutinePanic(t *testing.T) {
 	w := NewWorker(
 		WithAddr(endpoint),
 		WithStreamName("GoroutinePanic"),
-		WithRunFunc(func(ctx context.Context, m core.QueuedMessage) error {
+		WithRunFunc(func(ctx context.Context, m core.TaskMessage) error {
 			panic("missing something")
 		}),
 	)

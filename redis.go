@@ -176,7 +176,7 @@ func (w *Worker) queue(data interface{}) error {
 }
 
 // Queue send notification to queue
-func (w *Worker) Queue(task core.QueuedMessage) error {
+func (w *Worker) Queue(task core.TaskMessage) error {
 	if atomic.LoadInt32(&w.stopFlag) == 1 {
 		return queue.ErrQueueShutdown
 	}
@@ -185,12 +185,12 @@ func (w *Worker) Queue(task core.QueuedMessage) error {
 }
 
 // Run start the worker
-func (w *Worker) Run(ctx context.Context, task core.QueuedMessage) error {
+func (w *Worker) Run(ctx context.Context, task core.TaskMessage) error {
 	return w.opts.runFunc(ctx, task)
 }
 
 // Request a new task
-func (w *Worker) Request() (core.QueuedMessage, error) {
+func (w *Worker) Request() (core.TaskMessage, error) {
 	clock := 0
 	w.startConsumer()
 loop:
