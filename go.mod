@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/appleboy/com v0.2.1
 	github.com/golang-queue/queue v0.3.0
-	github.com/redis/go-redis/v9 v9.7.0
+	github.com/redis/go-redis/v9 v9.7.1
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.35.0
 	go.uber.org/goleak v1.3.0
