@@ -3,6 +3,7 @@ package redisdb
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -110,6 +111,10 @@ func (w *Worker) fetchTask() {
 			Block: w.opts.blockTime,
 		}).Result()
 		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				w.opts.logger.Infof("no messages available in Redis stream [%s]", w.opts.streamName)
+				continue
+			}
 			w.opts.logger.Errorf("error while reading from redis %v", err)
 			continue
 		}
