@@ -144,8 +144,7 @@ func WithSkipTLSVerify() Option {
 	return func(w *options) {
 		if w.tls == nil {
 			w.tls = &tls.Config{
-				InsecureSkipVerify: true, //nolint: gosec
-
+				InsecureSkipVerify: true, //nolint:gosec // Explicitly requested to support self-signed certificates.
 			}
 			return
 		}

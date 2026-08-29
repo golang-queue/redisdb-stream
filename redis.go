@@ -24,7 +24,7 @@ type Worker struct {
 	// redis config
 	rdb       redis.Cmdable
 	tasks     chan redis.XMessage
-	stopFlag  int32
+	stopFlag  atomic.Int32
 	stopOnce  sync.Once
 	startOnce sync.Once
 	stop      chan struct{}
@@ -124,7 +124,8 @@ func (w *Worker) fetchTask() {
 			for _, message := range result.Messages {
 				select {
 				case w.tasks <- message:
-					if err := w.rdb.XAck(ctx, w.opts.streamName, w.opts.group, message.ID).Err(); err != nil {
+					if err := w.rdb.XAck(ctx, w.opts.streamName, w.opts.group, message.ID).
+						Err(); err != nil {
 						w.opts.logger.Errorf("can't ack message: %s", message.ID)
 					}
 				case <-w.stop:
@@ -143,7 +144,7 @@ func (w *Worker) fetchTask() {
 
 // Shutdown worker
 func (w *Worker) Shutdown() error {
-	if !atomic.CompareAndSwapInt32(&w.stopFlag, 0, 1) {
+	if !w.stopFlag.CompareAndSwap(0, 1) {
 		return queue.ErrQueueShutdown
 	}
 
@@ -167,7 +168,7 @@ func (w *Worker) Shutdown() error {
 	return nil
 }
 
-func (w *Worker) queue(data interface{}) error {
+func (w *Worker) queue(data any) error {
 	ctx := context.Background()
 
 	// Publish a message.
@@ -182,11 +183,11 @@ func (w *Worker) queue(data interface{}) error {
 
 // Queue send notification to queue
 func (w *Worker) Queue(task core.TaskMessage) error {
-	if atomic.LoadInt32(&w.stopFlag) == 1 {
+	if w.stopFlag.Load() == 1 {
 		return queue.ErrQueueShutdown
 	}
 
-	return w.queue(map[string]interface{}{"body": bytesconv.BytesToStr(task.Bytes())})
+	return w.queue(map[string]any{"body": bytesconv.BytesToStr(task.Bytes())})
 }
 
 // Run start the worker
@@ -212,7 +213,7 @@ loop:
 			if clock == 5 {
 				break loop
 			}
-			clock += 1
+			clock++
 		}
 	}
 
