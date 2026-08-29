@@ -191,7 +191,7 @@ func TestRedisCluster(t *testing.T) {
 		WithAddr(strings.Join(hosts, ",")),
 		WithStreamName("testCluster"),
 		WithCluster(),
-		WithRunFunc(func(_ context.Context, m core.TaskMessage) error {
+		WithRunFunc(func(_ context.Context, _ core.TaskMessage) error {
 			time.Sleep(500 * time.Millisecond)
 			return nil
 		}),
