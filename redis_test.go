@@ -143,7 +143,7 @@ func TestCustomFuncAndWait(t *testing.T) {
 	w := NewWorker(
 		WithAddr(endpoint),
 		WithStreamName("test3"),
-		WithRunFunc(func(ctx context.Context, m core.TaskMessage) error {
+		WithRunFunc(func(_ context.Context, m core.TaskMessage) error {
 			time.Sleep(500 * time.Millisecond)
 			return nil
 		}),
