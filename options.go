@@ -12,6 +12,8 @@ import (
 // Option for queue system
 type Option func(*options)
 
+const defaultName = "golang-queue"
+
 type options struct {
 	runFunc          func(context.Context, core.TaskMessage) error
 	logger           queue.Logger
@@ -153,9 +155,9 @@ func WithSkipTLSVerify() Option {
 
 func newOptions(opts ...Option) options {
 	defaultOpts := options{
-		streamName: "golang-queue",
-		group:      "golang-queue",
-		consumer:   "golang-queue",
+		streamName: defaultName,
+		group:      defaultName,
+		consumer:   defaultName,
 		logger:     queue.NewLogger(),
 		runFunc: func(context.Context, core.TaskMessage) error {
 			return nil
