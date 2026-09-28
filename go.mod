@@ -1,6 +1,6 @@
 module github.com/golang-queue/redisdb-stream
 
-go 1.25.10
+go 1.26.8
 
 require (
 	github.com/appleboy/com v1.2.1
@@ -60,7 +60,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

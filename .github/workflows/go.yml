@@ -1,28 +1,34 @@
 name: Run Testing
-on: push
+on: [push, pull_request]
+
+env:
+  GOTOOLCHAIN: local
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Setup go
         uses: actions/setup-go@v7
         with:
-          go-version: "^1"
-      - name: Checkout repository
-        uses: actions/checkout@v7
+          go-version-file: go.mod
+          check-latest: true
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
+          version: v2.14.0
           args: --verbose
 
   # Label of the container job
   test:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        go: ["1.25"]
+        go: ["1.26.x", "1.27.x"]
         include:
           - os: ubuntu-latest
             go-build: ~/.cache/go-build
@@ -30,27 +36,34 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v7
-        with:
-          go-version: ${{ matrix.go }}
-
       - name: Checkout Code
         uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
+
+      - name: Set up Go ${{ matrix.go }}
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
 
       - uses: actions/cache@v6
         with:
           path: |
             ${{ matrix.go-build }}
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            ${{ runner.os }}-go-${{ matrix.go }}-
       - name: Run Tests
         run: |
           go test -v -covermode=atomic -coverprofile=coverage.out
+
+      - name: Build example modules
+        run: |
+          find _example -name go.mod -print0 | while IFS= read -r -d '' mod; do
+            (cd "$(dirname "$mod")" && go build -mod=readonly ./...)
+          done
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
