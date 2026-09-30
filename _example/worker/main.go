@@ -7,9 +7,10 @@ import (
 	"log"
 	"time"
 
+	redisdb "github.com/golang-queue/redisdb-stream"
+
 	"github.com/golang-queue/queue"
 	"github.com/golang-queue/queue/core"
-	redisdb "github.com/golang-queue/redisdb-stream"
 )
 
 type job struct {
