@@ -1,6 +1,6 @@
 module github.com/golang-queue/redisdb-stream
 
-go 1.26.8
+go 1.26.10
 
 require (
 	github.com/appleboy/com v1.2.1
