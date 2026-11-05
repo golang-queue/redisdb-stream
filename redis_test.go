@@ -77,7 +77,7 @@ func setupRedisContainer(ctx context.Context, t *testing.T) (testcontainers.Cont
 }
 
 func TestWithRedis(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, _ := setupRedisContainer(ctx, t)
 	testcontainers.CleanupContainer(t, redisC)
 }
@@ -91,7 +91,7 @@ func (m mockMessage) Bytes() []byte {
 }
 
 func TestRedisDefaultFlow(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 
@@ -114,7 +114,7 @@ func TestRedisDefaultFlow(t *testing.T) {
 }
 
 func TestRedisShutdown(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 	w := NewWorker(
@@ -136,7 +136,7 @@ func TestRedisShutdown(t *testing.T) {
 }
 
 func TestCustomFuncAndWait(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 	m := &mockMessage{
@@ -167,7 +167,7 @@ func TestCustomFuncAndWait(t *testing.T) {
 func TestRedisCluster(t *testing.T) {
 	t.Skip()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, _ := setupRedisCluserContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 
@@ -213,7 +213,7 @@ func TestRedisCluster(t *testing.T) {
 }
 
 func TestEnqueueJobAfterShutdown(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
@@ -238,7 +238,7 @@ func TestEnqueueJobAfterShutdown(t *testing.T) {
 }
 
 func TestJobReachTimeout(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
@@ -280,7 +280,7 @@ func TestJobReachTimeout(t *testing.T) {
 }
 
 func TestCancelJobAfterShutdown(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
@@ -323,7 +323,7 @@ func TestCancelJobAfterShutdown(t *testing.T) {
 }
 
 func TestGoroutineLeak(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{
@@ -371,7 +371,7 @@ func TestGoroutineLeak(t *testing.T) {
 }
 
 func TestGoroutinePanic(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	redisC, endpoint := setupRedisContainer(ctx, t)
 	defer testcontainers.CleanupContainer(t, redisC)
 	m := mockMessage{

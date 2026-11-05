@@ -39,14 +39,14 @@ func main() {
 	)
 
 	// assign tasks in queue
-	for i := 0; i < taskN; i++ {
-		go func(i int) {
+	for i := range taskN {
+		go func() {
 			if err := q.Queue(&job{
 				Message: fmt.Sprintf("handle the job: %d", i+1),
 			}); err != nil {
 				log.Fatal(err)
 			}
-		}(i)
+		}()
 	}
 
 	time.Sleep(2 * time.Second)
